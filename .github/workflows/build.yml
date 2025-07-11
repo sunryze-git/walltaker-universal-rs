@@ -1,0 +1,43 @@
+name: Build Rust Binaries
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Build Linux binary
+        run: cargo build --release
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: walltaker-universal-rs-linux
+          path: target/release/walltaker-universal-rs
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Build Windows binary
+        run: cargo build --release
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: walltaker-universal-rs-windows.exe
+          path: target/release/walltaker-universal-rs.exe
+
