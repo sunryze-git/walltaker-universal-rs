@@ -40,3 +40,22 @@ jobs:
         with:
           name: walltaker-universal-rs-windows.exe
           path: target/release/walltaker-universal-rs.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Add macOS ARM64 target
+        run: rustup target add aarch64-apple-darwin
+      - name: Build macOS ARM64 binary
+        run: cargo build --release --target aarch64-apple-darwin
+      - name: Upload macOS ARM64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: walltaker-universal-rs-macos-arm64
+          path: target/aarch64-apple-darwin/release/walltaker-universal-rs
