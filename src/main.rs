@@ -5,6 +5,9 @@ use reqwest::Client;
 use tokio::time::{sleep, Duration};
 use wallpaper;
 
+mod api;
+use api::fetch_walltaker_link;
+
 // I just wanna note something important here.
 // I was losing my mind trying to figure out how to make this.
 // I started in C# originally and encountered UI problems there.
@@ -84,25 +87,21 @@ async fn main() -> anyhow::Result<()> {
     let mut last_wallpaper_url = String::new();
 
     loop {
-        // Check for new
         println!("Checking for new wallpaper...");
-        let resp = Client::new().get(&api_url).send().await?;
-        if !resp.status().is_success() {
-            eprintln!("Failed to fetch wallpaper information. Retrying...");
-            sleep(Duration::from_secs(10)).await;
-            continue;
-        }
-
-        // Is it different?
-        let link: WalltakerLink = resp.json().await?;
+        let link = match fetch_walltaker_link(&Client::new(), &api_url).await {
+            Ok(link) => link,
+            Err(e) => {
+                eprintln!("Failed to fetch wallpaper information: {}. Retrying...", e);
+                sleep(Duration::from_secs(10)).await;
+                continue;
+            }
+        };
         let new_wallpaper_url = link.post_url;
         if new_wallpaper_url.is_empty() || new_wallpaper_url == last_wallpaper_url {
             println!("No new wallpaper detected");
             sleep(Duration::from_secs(10)).await;
             continue;
         }
-
-        // Wallpaper is different!
         println!("New wallpaper URL found: {}", new_wallpaper_url);
         last_wallpaper_url = new_wallpaper_url.clone();
         println!("Downloading new wallpaper to: {:?}", wallpaper_path);
@@ -112,7 +111,6 @@ async fn main() -> anyhow::Result<()> {
             continue;
         }
         println!("Wallpaper downloaded successfully! Waiting for next check...");
-
         set_wallpaper(&wallpaper_path.to_string_lossy())?;
         sleep(Duration::from_secs(10)).await;
     }
