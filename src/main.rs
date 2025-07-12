@@ -87,7 +87,6 @@ async fn main() -> anyhow::Result<()> {
     let mut last_wallpaper_url = String::new();
 
     loop {
-        println!("Checking for new wallpaper...");
         let link = match fetch_walltaker_link(&Client::new(), &api_url).await {
             Ok(link) => link,
             Err(e) => {
@@ -98,7 +97,6 @@ async fn main() -> anyhow::Result<()> {
         };
         let new_wallpaper_url = link.post_url;
         if new_wallpaper_url.is_empty() || new_wallpaper_url == last_wallpaper_url {
-            println!("No new wallpaper detected");
             sleep(Duration::from_secs(10)).await;
             continue;
         }
