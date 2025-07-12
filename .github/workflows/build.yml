@@ -2,9 +2,8 @@ name: Build Rust Binaries
 
 on:
   push:
-    branches: [ main, stable ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "**" ]
+    tags: [ "v*" ]
 
 jobs:
   build-linux:
@@ -59,20 +58,20 @@ jobs:
           path: target/release/walltaker-universal-rs
 
   release:
-    if: github.ref == 'refs/heads/stable'
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Read Version
         id: version
-        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: "Release v${{ env.VERSION }}"
+          tag_name: ${{ env.VERSION }}
+          release_name: "Release ${{ env.VERSION }}"
           draft: false
           prerelease: false
       - name: Upload Release Assets
